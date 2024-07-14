@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+
+    <div class="header">
+        <img src="logo.webp" alt="Açıklayıcı Metin" class="center-image">
+    </div>
+    <title>Stok Kodu Barkoda Dönüştürme</title>
+    <style>
+        .center-image {
+            width: 25%; /* Resmin genişliğini %25 yap */
+            height: auto; /* Yüksekliği otomatik ayarla */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: separate; /* Kenar boşlukları ayrı olacak şekilde ayarlayın */
+            border-spacing: 0 10px; /* Satırlar arasında boşluk */
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #fff; /* Arka plan rengi */
+        }
+        #preview {
+            margin-top: 20px;
+        }
+        img {
+            width: 100%;
+            height: auto;
+            border: none;
+        }
+        @media (max-width: 600px) {
+            th, td {
+                display: block; /* Blok yapısı */
+                width: 100%; /* Genişlik %100 */
+            }
+
+            tr {
+                margin-bottom: 10px; /* Satırlar arasında boşluk */
+            }
+        }
+        .footer {
+            text-align: center; /* Ortalar */
+            position: relative;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1; /* Arka plan rengi */
+        }
+    </style>
+</head>
+<body>
+    <h1>Stok Kodu Barkoda Dönüştürme</h1>
+    <table id="barcodeTable">
+        <tr>
+            <th>Stok Kodu</th>
+            <th>Adet</th>
+        </tr>
+        <tr>
+            <td><input type="text" class="stockCode" placeholder="Stok Kodu"></td>
+            <td><input type="number" class="quantity" value="1" min="1"></td>
+        </tr>
+    </table>
+    <button onclick="addRow()">Yeni Satır Ekle</button>
+    <button onclick="generatePNGs()">Önizle</button>
+    <button onclick="sendPNGs()" id="sendButton" disabled>Gönder</button>
+
+    <div id="preview">
+        <h2>Önizleme</h2>
+    </div>
+    <footer class="footer">
+        &copy; Bilal Bildik
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        let pngDataList = [];
+
+        function addRow() {
+            const table = document.getElementById('barcodeTable');
+            const newRow = table.insertRow();
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            cell1.innerHTML = '<input type="text" class="stockCode" placeholder="Stok Kodu">';
+            cell2.innerHTML = '<input type="number" class="quantity" value="1" min="1">';
+        }
+
+        async function generatePNGs() {
+            const table = document.getElementById('barcodeTable');
+            const rows = table.getElementsByTagName('tr');
+            const barcodes = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const stockCode = rows[i].getElementsByClassName('stockCode')[0].value;
+                const quantity = parseInt(rows[i].getElementsByClassName('quantity')[0].value);
+                for (let j = 0; j < quantity; j++) {
+                    barcodes.push(stockCode);
+                }
+            }
+
+            const pageWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const barcodeWidth = 35; // width of each barcode cell in mm
+            const barcodeHeight = 23.3; // height of each barcode cell in mm
+            const marginTop = 9.4; // top margin in mm
+            const marginBottom = 7.6; // bottom margin in mm
+            const columns = 6; // number of barcode columns on A4 (210 / 35)
+            const rowsPerPage = Math.floor((pageHeight - marginTop - marginBottom) / barcodeHeight); // number of barcode rows on A4
+
+            // Convert mm to pixels for canvas
+            const dpi = 96; // Assuming 96 DPI
+            const mmToPx = dpi / 25.4;
+
+            pngDataList = [];
+            let pageNum = 0;
+
+            while (barcodes.length > 0) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = pageWidth * mmToPx;
+                canvas.height = pageHeight * mmToPx;
+
+                for (let i = 0; i < columns * rowsPerPage && barcodes.length > 0; i++) {
+                    const x = (i % columns) * barcodeWidth * mmToPx;
+                    const y = marginTop * mmToPx + Math.floor(i / columns) * barcodeHeight * mmToPx;
+
+                    const barcodeCanvas = document.createElement('canvas');
+                    JsBarcode(barcodeCanvas, barcodes.shift(), {
+                        format: "CODE128",
+                        displayValue: true,
+                        lineColor: "#000"
+                    });
+
+                    ctx.drawImage(barcodeCanvas, x, y, barcodeWidth * mmToPx, barcodeHeight * mmToPx);
+                }
+
+                pngDataList.push(canvas.toDataURL("image/png"));
+                pageNum++;
+            }
+
+            // Show the generated images in the preview section
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = '<h2>Önizleme</h2>'; // Clear previous preview
+            pngDataList.forEach((dataUrl, index) => {
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.alt = `Page ${index + 1}`;
+                previewDiv.appendChild(img);
+            });
+
+            // Enable the send button
+            document.getElementById('sendButton').disabled = false;
+        }
+
+        function sendPNGs() {
+            const formData = new FormData();
+            pngDataList.forEach((pngData, index) => {
+                formData.append(`file${index + 1}`, pngData.split(',')[1]);
+            });
+
+            fetch('https://script.google.com/macros/s/AKfycbzqIEHDy39-h89kUHeYkh24jTVJqZmi-2njdEpmLTTSUDhd_DXeWBIcn42o9ENjFoJCiQ/exec', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert('PNG e-posta ile gönderildi.');
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+            });
+        }
+    </script>
+</body>
+</html>
