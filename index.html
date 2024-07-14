@@ -4,15 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="/manifest.json">
-
-    <div class="header">
-        <img src="logo.webp" alt="Açıklayıcı Metin" class="center-image">
-    </div>
     <title>Stok Kodu Barkoda Dönüştürme</title>
     <style>
         .center-image {
-            width: 25%; /* Resmin genişliğini %25 yap */
-            height: auto; /* Yüksekliği otomatik ayarla */
+            width: 25%;
+            height: auto;
         }
         body {
             font-family: Arial, sans-serif;
@@ -26,13 +22,13 @@
         }
         table {
             margin: 0 auto;
-            border-collapse: separate; /* Kenar boşlukları ayrı olacak şekilde ayarlayın */
-            border-spacing: 0 10px; /* Satırlar arasında boşluk */
+            border-collapse: separate;
+            border-spacing: 0 10px;
         }
         th, td {
             padding: 10px;
             border: 1px solid #ddd;
-            background-color: #fff; /* Arka plan rengi */
+            background-color: #fff;
         }
         #preview {
             margin-top: 20px;
@@ -44,24 +40,26 @@
         }
         @media (max-width: 600px) {
             th, td {
-                display: block; /* Blok yapısı */
-                width: 100%; /* Genişlik %100 */
+                display: block;
+                width: 100%;
             }
-
             tr {
-                margin-bottom: 10px; /* Satırlar arasında boşluk */
+                margin-bottom: 10px;
             }
         }
         .footer {
-            text-align: center; /* Ortalar */
+            text-align: center;
             position: relative;
             bottom: 0;
             width: 100%;
-            background-color: #f1f1f1; /* Arka plan rengi */
+            background-color: #f1f1f1;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <img src="logo.webp" alt="Açıklayıcı Metin" class="center-image">
+    </div>
     <h1>Stok Kodu Barkoda Dönüştürme</h1>
     <table id="barcodeTable">
         <tr>
@@ -114,13 +112,12 @@
             const pageHeight = 297; // A4 height in mm
             const barcodeWidth = 35; // width of each barcode cell in mm
             const barcodeHeight = 23.3; // height of each barcode cell in mm
-            const marginTop = 9.4; // top margin in mm
-            const marginBottom = 7.6; // bottom margin in mm
+            const marginTop = 8.7; // top margin in mm
+            const marginBottom = 8.7; // bottom margin in mm
             const columns = 6; // number of barcode columns on A4 (210 / 35)
             const rowsPerPage = Math.floor((pageHeight - marginTop - marginBottom) / barcodeHeight); // number of barcode rows on A4
 
-            // Convert mm to pixels for canvas
-            const dpi = 96; // Assuming 96 DPI
+            const dpi = 100; // Assuming 96 DPI
             const mmToPx = dpi / 25.4;
 
             pngDataList = [];
@@ -150,9 +147,8 @@
                 pageNum++;
             }
 
-            // Show the generated images in the preview section
             const previewDiv = document.getElementById('preview');
-            previewDiv.innerHTML = '<h2>Önizleme</h2>'; // Clear previous preview
+            previewDiv.innerHTML = '<h2>Önizleme</h2>';
             pngDataList.forEach((dataUrl, index) => {
                 const img = document.createElement('img');
                 img.src = dataUrl;
@@ -160,33 +156,20 @@
                 previewDiv.appendChild(img);
             });
 
-            // Enable the send button
             document.getElementById('sendButton').disabled = false;
         }
 
         function sendPNGs() {
-    const formData = new FormData();
-    pngDataList.forEach((pngData, index) => {
-        formData.append(`file${index + 1}`, pngData.split(',')[1]);
-    });
+            const payload = { pngDataList: pngDataList.map(data => data.split(',')[1]) }; // Remove "data:image/png;base64,"
 
-    fetch('https://script.google.com/macros/s/AKfycbzMOK6IKLNP8VO5USl86oBOJyS82358WAczQiIrDd32Xh9pVKK5VtTG5RXjn8Umgu2fAg/exec', {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors'
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.status === 'success') {
-            alert(result.message);
-        } else {
-            alert(result.message);
+            fetch('https://script.google.com/macros/s/AKfycbyNvtztMOcAX51iDpS_22jEaRRC-2Ezi0NTEFKy_326hcbcjD3k7z5uLvbJJ-iU_8YiMg/exec', {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.text())
+            .then(result => alert(result))
+            .catch(error => console.error('Error:', error));
         }
-    })
-    .catch(error => {
-        console.error('Hata:', error);
-    });
-}
     </script>
 </body>
 </html>
