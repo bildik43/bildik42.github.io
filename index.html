@@ -165,23 +165,28 @@
         }
 
         function sendPNGs() {
-            const formData = new FormData();
-            pngDataList.forEach((pngData, index) => {
-                formData.append(`file${index + 1}`, pngData.split(',')[1]);
-            });
+    const formData = new FormData();
+    pngDataList.forEach((pngData, index) => {
+        formData.append(`file${index + 1}`, pngData.split(',')[1]);
+    });
 
-            fetch('https://script.google.com/macros/s/AKfycbzqIEHDy39-h89kUHeYkh24jTVJqZmi-2njdEpmLTTSUDhd_DXeWBIcn42o9ENjFoJCiQ/exec', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(result => {
-                alert('PNG e-posta ile gönderildi.');
-            })
-            .catch(error => {
-                console.error('Hata:', error);
-            });
+    fetch('https://script.google.com/macros/s/AKfycbzMOK6IKLNP8VO5USl86oBOJyS82358WAczQiIrDd32Xh9pVKK5VtTG5RXjn8Umgu2fAg/exec', {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.status === 'success') {
+            alert(result.message);
+        } else {
+            alert(result.message);
         }
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+    });
+}
     </script>
 </body>
 </html>
