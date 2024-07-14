@@ -82,7 +82,6 @@
         &copy; Bilal Bildik
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let pngDataList = [];
 
@@ -129,18 +128,30 @@
                 canvas.width = pageWidth * mmToPx;
                 canvas.height = pageHeight * mmToPx;
 
+                // Beyaz arka plan oluşturma
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
                 for (let i = 0; i < columns * rowsPerPage && barcodes.length > 0; i++) {
                     const x = (i % columns) * barcodeWidth * mmToPx;
                     const y = marginTop * mmToPx + Math.floor(i / columns) * barcodeHeight * mmToPx;
 
+                    // Çerçeve çizme
+                    ctx.strokeStyle = "rgba(0, 0, 0, 0)"; // Şeffaf çerçeve rengi
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, barcodeWidth * mmToPx, barcodeHeight * mmToPx);
+
+                    // Barkod oluşturma
                     const barcodeCanvas = document.createElement('canvas');
+                    const smallerWidth = barcodeWidth * 0.8; // %20 daha küçük
+                    const smallerHeight = barcodeHeight * 0.8; // %20 daha küçük
                     JsBarcode(barcodeCanvas, barcodes.shift(), {
                         format: "CODE128",
                         displayValue: true,
                         lineColor: "#000"
                     });
 
-                    ctx.drawImage(barcodeCanvas, x, y, barcodeWidth * mmToPx, barcodeHeight * mmToPx);
+                    ctx.drawImage(barcodeCanvas, x + (barcodeWidth * mmToPx - smallerWidth * mmToPx) / 2, y + (barcodeHeight * mmToPx - smallerHeight * mmToPx) / 2, smallerWidth * mmToPx, smallerHeight * mmToPx);
                 }
 
                 pngDataList.push(canvas.toDataURL("image/png"));
@@ -162,8 +173,11 @@
         function sendPNGs() {
             const payload = { pngDataList: pngDataList.map(data => data.split(',')[1]) }; // Remove "data:image/png;base64,"
 
-            fetch('https://script.google.com/macros/s/AKfycbyNvtztMOcAX51iDpS_22jEaRRC-2Ezi0NTEFKy_326hcbcjD3k7z5uLvbJJ-iU_8YiMg/exec', {
+            fetch('YOUR_WEB_APP_URL_HERE', {
                 method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
             })
             .then(response => response.text())
