@@ -173,7 +173,7 @@
         function sendPNGs() {
             const payload = { pngDataList: pngDataList.map(data => data.split(',')[1]) }; // Remove "data:image/png;base64,"
 
-            fetch('https://script.google.com/macros/s/AKfycby8ou46w2Ib-iagxQNOdThw0seO5lFCxy-WFtpYHzN8PvqZGUmM8K9z8-mKADC3y5ci/exec', {
+            fetch('https://script.google.com/macros/s/AKfycbwY-UvPc24c6oEhLfOhFSaqjaXBFkakMdwQl5nZof1j-ljCJ54HJwPfO-vrsW0I2teC/exec', {
                 method: "POST",
                 body: JSON.stringify(payload)
             })
